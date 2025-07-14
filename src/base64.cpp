@@ -14,12 +14,12 @@ const char *Base64::base64_alphabet =
 
 static uint8_t charToIndex(char base64_char) {
 
-    if     (isalpha(base64_char) && isupper(base64_char))   return base64_char - 'A';
-    else if(isalpha(base64_char) && islower(base64_char))   return base64_char - 'a' + ('Z' - 'A' + 1);
-    else if(isdigit(base64_char))                           return base64_char - '0' + ('Z' - 'A' + 1) * 2;
-    else if(base64_char == '+')                             return 62; // ('Z' - 'A' + 1) * 2 + ('9' - '0') + 1
-    else if(base64_char == '/')                             return 63; // ('Z' - 'A' + 1) * 2 + ('9' - '0') + 2
-    else                                                    throw  std::runtime_error("Invalid base64 character");
+    if     ('A' <= base64_char && base64_char <= 'Z')   return base64_char - 'A';
+    else if('a' <= base64_char && base64_char <= 'z')   return base64_char - 'a' + ('Z' - 'A' + 1);
+    else if('0' <= base64_char && base64_char <= '9')   return base64_char - '0' + ('Z' - 'A' + 1) * 2;
+    else if(base64_char == '+')                         return 62; // ('Z' - 'A' + 1) * 2 + ('9' - '0') + 1
+    else if(base64_char == '/')                         return 63; // ('Z' - 'A' + 1) * 2 + ('9' - '0') + 2
+    else                                                throw  std::runtime_error("Invalid base64 character");
 }
 
 static char getBase64Char(const char *alphabet, const uint8_t *bytes_ptr, int chunk_index) {
@@ -35,16 +35,16 @@ static char getBase64Char(const char *alphabet, const uint8_t *bytes_ptr, int ch
     uint32_t index;
     switch (chunk_index) {
         case 1:  /* 1-th chunk */
-            index = ((*bytes_ptr) & 0xfc) >> 2;
+            index = ((*bytes_ptr) & 0b11111100) >> 2;
             break;
         case 2:  /* 2-th chunk */
-            index = (((*bytes_ptr) & 0x03) << 4) + ((*(bytes_ptr + 1) & 0xf0) >> 4);
+            index = (((*bytes_ptr) & 0b00000011) << 4) + ((*(bytes_ptr + 1) & 0b11110000) >> 4);
             break;
         case 3:  /* 3-th chunk */
-            index = (((*(bytes_ptr + 1)) & 0x0f) << 2) + ((((*(bytes_ptr + 2)) & 0xc0) >> 6));
+            index = (((*(bytes_ptr + 1)) & 0b00001111) << 2) + ((((*(bytes_ptr + 2)) & 0b11000000) >> 6));
             break;
         case 4:  /* 4-th chunk */
-            index = ((*(bytes_ptr + 2)) & 0x3f);
+            index = ((*(bytes_ptr + 2)) & 0b00111111);
             break;
         default:
             throw std::runtime_error("Invalid chunk index");
@@ -73,13 +73,13 @@ static uint8_t getRawByte(const char *base64_ptr, int data_index, int num_chars)
 
     switch (data_index) {
         case 1:  /* 1-th byte */
-            raw_byte = (raw_index[1] << 2) + ((raw_index[2] & 0x30) >> 4);
+            raw_byte = (raw_index[1] << 2) + ((raw_index[2] & 0b110000) >> 4);
             break;
         case 2:  /* 2-th byte */
-            raw_byte = ((raw_index[2] & 0x0f) << 4) + ((raw_index[3] & 0x3c) >> 2);
+            raw_byte = ((raw_index[2] & 0b001111) << 4) + ((raw_index[3] & 0b111100) >> 2);
             break;
         case 3:  /* 3-th byte */
-            raw_byte = ((raw_index[3] & 0x03) << 6) + (raw_index[4]);
+            raw_byte = ((raw_index[3] & 0b000011) << 6) + (raw_index[4]);
             break;
         default:
             throw std::runtime_error("Invalid data index");
@@ -118,23 +118,16 @@ std::string Base64::encode(const std::vector<uint8_t> &bytes) {
         bytes_tail[i] = bytes[curr + i];
     }
 
-    if(num_bytes % 3 == 1) {
-        
-        for(int chunk = 1; chunk <= 2; ++chunk){
+    if(num_bytes % 3 >= 1) {
+
+        int num_chunks = (8 * (num_bytes % 3) + 5) / 6; 
+
+        for(int chunk = 1; chunk <= num_chunks; ++chunk){
             encoding.push_back(getBase64Char(
                 this->base64_alphabet, bytes_tail, chunk
             ));
         }
-        encoding += "==";
-    }
-    else if(num_bytes % 3 == 2) {
-        
-        for(int chunk = 1; chunk <= 3; ++chunk){
-            encoding.push_back(getBase64Char(
-                this->base64_alphabet, bytes_tail, chunk
-            ));
-        }
-        encoding += '=';
+        encoding += std::string(4 - num_chunks, '=');
     }
 
     if(this->getType() == Base64Type::URL) {

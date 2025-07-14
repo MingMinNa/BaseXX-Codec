@@ -23,7 +23,7 @@ static uint8_t charToIndex(char base32_char, Base32Type type) {
         else                                               throw  std::runtime_error("Invalid base32 character");
     }
     else if(type == Base32Type::HEX){
-        if     (isdigit(base32_char))                      return base32_char - '0';
+        if     ('0' <= base32_char && base32_char <= '9')  return base32_char - '0';
         else if('A' <= base32_char && base32_char <= 'V')  return base32_char - 'A' + 10;
         else                                               throw  std::runtime_error("Invalid base32 character");
     }
@@ -36,7 +36,7 @@ static char getBase32Char(const char *alphabets, const uint8_t *bytes_ptr, int c
     /*
         +--first octet--+-second octet--+--third octet--+--fourth octet-+--fifth octet--+
         |7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|
-        +---------+---------+---------+---------+---------+---------+---------+---------+
+        +---------+-----+---+---------+-+-------+-------+-+---------+---+-----+---------+
         |4 3 2 1 0|4 3 2 1 0|4 3 2 1 0|4 3 2 1 0|4 3 2 1 0|4 3 2 1 0|4 3 2 1 0|4 3 2 1 0|
         +-1.index-+-2.index-+-3.index-+-4.index-+-5.index-+-6.index-+-7.index-+-8.index-+
     */
@@ -44,28 +44,28 @@ static char getBase32Char(const char *alphabets, const uint8_t *bytes_ptr, int c
     uint32_t index;
     switch (chunk_index) {
         case 1:  /* 1-th chunk */
-            index = ((*bytes_ptr) & 0xf8) >> 3;
+            index = ((*bytes_ptr) & 0b11111000) >> 3;
             break;
         case 2:  /* 2-th chunk */
-            index = (((*bytes_ptr) & 0x07) << 2) + (((*(bytes_ptr + 1)) & 0xc0) >> 6);
+            index = (((*bytes_ptr) & 0b00000111) << 2) + (((*(bytes_ptr + 1)) & 0b11000000) >> 6);
             break;
         case 3:  /* 3-th chunk */
-            index = (((*(bytes_ptr + 1)) & 0x3e) >> 1);
+            index = (((*(bytes_ptr + 1)) & 0b00111110) >> 1);
             break;
         case 4:  /* 4-th chunk */
-            index = (((*(bytes_ptr + 1)) & 0x01) << 4) + (((*(bytes_ptr + 2)) & 0xf0) >> 4);
+            index = (((*(bytes_ptr + 1)) & 0b00000001) << 4) + (((*(bytes_ptr + 2)) & 0b11110000) >> 4);
             break;
         case 5:  /* 5-th chunk */
-            index = (((*(bytes_ptr + 2)) & 0x0f) << 1) + (((*(bytes_ptr + 3)) & 0x80) >> 7);
+            index = (((*(bytes_ptr + 2)) & 0b00001111) << 1) + (((*(bytes_ptr + 3)) & 0b10000000) >> 7);
             break;
         case 6:  /* 6-th chunk */
-            index = (((*(bytes_ptr + 3)) & 0x7c) >> 2);
+            index = (((*(bytes_ptr + 3)) & 0b01111100) >> 2);
             break;
         case 7:  /* 7-th chunk */
-            index = (((*(bytes_ptr + 3)) & 0x03) << 3) + (((*(bytes_ptr + 4)) & 0xe0) >> 5);
+            index = (((*(bytes_ptr + 3)) & 0b00000011) << 3) + (((*(bytes_ptr + 4)) & 0b11100000) >> 5);
             break;
         case 8:  /* 8-th chunk */
-            index = ((*(bytes_ptr + 4)) & 0x1f);
+            index = ((*(bytes_ptr + 4)) & 0b00011111);
             break;    
         default:
             throw std::runtime_error("Invalid chunk index");
@@ -81,7 +81,7 @@ static uint8_t getRawByte(const char *base32_ptr, int data_index, Base32Type typ
     /*
         +--first octet--+-second octet--+--third octet--+--fourth octet-+--fifth octet--+
         |7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|
-        +---------+---------+---------+---------+---------+---------+---------+---------+
+        +---------+-----+---+---------+-+-------+-------+-+---------+---+-----+---------+
         |4 3 2 1 0|4 3 2 1 0|4 3 2 1 0|4 3 2 1 0|4 3 2 1 0|4 3 2 1 0|4 3 2 1 0|4 3 2 1 0|
         +-1.index-+-2.index-+-3.index-+-4.index-+-5.index-+-6.index-+-7.index-+-8.index-+
     */
@@ -94,19 +94,19 @@ static uint8_t getRawByte(const char *base32_ptr, int data_index, Base32Type typ
 
     switch (data_index) {
         case 1:  /* 1-th byte */
-            raw_byte = (raw_index[1] << 3) + ((raw_index[2] & 0x1c) >> 2);
+            raw_byte = (raw_index[1] << 3) + ((raw_index[2] & 0b11100) >> 2);
             break;
         case 2:  /* 2-th byte */
-            raw_byte = ((raw_index[2] & 0x03) << 6) + ((raw_index[3]) << 1) + ((raw_index[4] & 0x10) >> 4);
+            raw_byte = ((raw_index[2] & 0b00011) << 6) + ((raw_index[3]) << 1) + ((raw_index[4] & 0b10000) >> 4);
             break;
         case 3:  /* 3-th byte */
-            raw_byte = ((raw_index[4] & 0x0f) << 4) + ((raw_index[5] & 0x1e) >> 1);
+            raw_byte = ((raw_index[4] & 0b01111) << 4) + ((raw_index[5] & 0b11110) >> 1);
             break;
         case 4:  /* 4-th byte */
-            raw_byte = ((raw_index[5] & 0x01) << 7) + ((raw_index[6]) << 2) + ((raw_index[7] & 0x18) >> 3);
+            raw_byte = ((raw_index[5] & 0b00001) << 7) + ((raw_index[6]) << 2) + ((raw_index[7] & 0b11000) >> 3);
             break;
         case 5:  /* 5-th byte */
-            raw_byte = ((raw_index[7] & 0x07) << 5) + raw_index[8];
+            raw_byte = ((raw_index[7] & 0b00111) << 5) + raw_index[8];
             break;
         default:
             throw std::runtime_error("Invalid data index");
@@ -127,9 +127,9 @@ std::string Base32::encode(const std::vector<uint8_t> &bytes) {
     encoding.reserve(num_bytes / 5 * 8 + 10);
     
     size_t curr = 0;
-    size_t num_bytes_3_multiple = num_bytes - num_bytes % 5;
+    size_t num_bytes_5_multiple = num_bytes - num_bytes % 5;
 
-    for(; curr < num_bytes_3_multiple; curr += 5) {
+    for(; curr < num_bytes_5_multiple; curr += 5) {
 
         const uint8_t *bytes_ptr = bytes.data() + curr;
         // split 5 bytes into 8 chunks. The size of each chunk is 5 bits.
@@ -177,7 +177,7 @@ std::vector<uint8_t> Base32::decode(const std::string &str) {
 
     size_t num_chars = encoding.size();
     std::vector<uint8_t> raw_data;
-    raw_data.reserve(num_chars * 5 / 8 + 10);
+    raw_data.reserve(num_chars * 5 / 8 + 4);
 
     
     size_t curr = 0;

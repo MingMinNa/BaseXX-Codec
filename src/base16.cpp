@@ -12,7 +12,7 @@ const char *Base16::base16_alphabet =
 
 static uint8_t charToIndex(char base16_char) {
 
-    if     (isdigit(base16_char))                      return base16_char - '0';
+    if     ('0' <= base16_char && base16_char <= '9')  return base16_char - '0';
     else if('A' <= base16_char && base16_char <= 'F')  return base16_char - 'A' + 10;
     else                                               throw  std::runtime_error("Invalid base16 character");
 }
@@ -22,7 +22,7 @@ static char getBase16Char(const char *alphabet, const uint8_t *bytes_ptr, int ch
     /*
         +--first octet--+
         |7 6 5 4 3 2 1 0|
-        +-------+---+---+
+        +-------+-------+
         |3 2 1 0|3 2 1 0|
         +---1---+---2---+
     */
@@ -30,10 +30,10 @@ static char getBase16Char(const char *alphabet, const uint8_t *bytes_ptr, int ch
     uint32_t index;
     switch (chunk_index) {
         case 1:  /* 1-th chunk */
-            index = ((*bytes_ptr) & 0xf0) >> 4;
+            index = ((*bytes_ptr) & 0b11110000) >> 4;
             break;
         case 2:  /* 2-th chunk */
-            index = ((*bytes_ptr) & 0x0f);
+            index = ((*bytes_ptr) & 0b00001111);
             break;
         default:
             throw std::runtime_error("Invalid chunk index");
@@ -49,7 +49,7 @@ static uint8_t getRawByte(const char *base16_ptr) {
     /*
         +--first octet--+
         |7 6 5 4 3 2 1 0|
-        +-------+---+---+
+        +-------+-------+
         |3 2 1 0|3 2 1 0|
         +---1---+---2---+
     */
@@ -94,7 +94,7 @@ std::vector<uint8_t> Base16::decode(const std::string &str) {
     std::vector<uint8_t> raw_data;
     raw_data.reserve(num_chars / 2 + 2);
 
-    if(num_chars & 1)
+    if(num_chars & 1)   // the size of an valid base16 encoding must be even
         throw std::runtime_error("Invalid base16 encoding");
     
 
