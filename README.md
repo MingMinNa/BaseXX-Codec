@@ -1,10 +1,10 @@
-# Base64 Codec
+# BaseXX Codec
 
 <a href="README.md">English</a> | <a href="README.zh-TW.md">繁體中文</a>
 
-This project is an implementation of Base64 codec in C++.  
-Due to the diversity of Base64 implementations in multiple programming languages,   
-the practical value of this project is relatively low.  
+This project provides a C++ implementation of Base16, Base32, and Base64 codecs.  
+Due to the existence of BaseXX codec implementations in multiple programming languages,   
+the practical value of this project is relatively limited.  
 The main purpose is to practice and get more familiar with C++ programming.
 
 ## References
