@@ -5,7 +5,7 @@ EXT = cpp
 SRC_DIR   = src
 BUILD_DIR = build
 
-TARGET = main
+TARGET = example
 SRCS = $(wildcard $(SRC_DIR)/*.$(EXT) $(TARGET).$(EXT))
 OBJS = $(patsubst $(SRC_DIR)/%.$(EXT), $(BUILD_DIR)/%.o, $(SRCS))
 

@@ -12,13 +12,14 @@ const char *Base64::base64_alphabet =
     "+/";
 
 
-static uint8_t char_to_idx(char base64_char) {
+static uint8_t charToIndex(char base64_char) {
 
     if     (isalpha(base64_char) && isupper(base64_char))   return base64_char - 'A';
     else if(isalpha(base64_char) && islower(base64_char))   return base64_char - 'a' + ('Z' - 'A' + 1);
     else if(isdigit(base64_char))                           return base64_char - '0' + ('Z' - 'A' + 1) * 2;
     else if(base64_char == '+')                             return 62; // ('Z' - 'A' + 1) * 2 + ('9' - '0') + 1
-    else                                                    return 63; // ('Z' - 'A' + 1) * 2 + ('9' - '0') + 2
+    else if(base64_char == '/')                             return 63; // ('Z' - 'A' + 1) * 2 + ('9' - '0') + 2
+    else                                                    throw  std::runtime_error("Invalid base64 character");
 }
 
 static char getBase64Char(const char *alphabet, const uint8_t *bytes_ptr, int chunk_index) {
@@ -67,7 +68,7 @@ static uint8_t getRawByte(const char *base64_ptr, int data_index) {
     uint8_t raw_byte; 
     uint8_t raw_index[4];
     for(int i = 0; i < 4; ++i){
-        raw_index[i] = char_to_idx(*(base64_ptr + i));
+        raw_index[i] = charToIndex(*(base64_ptr + i));
     }
 
     switch (data_index) {

@@ -1,3 +1,5 @@
+#include "src/base16.h"
+#include "src/base32.h"
 #include "src/base64.h"
 #include <iostream>
 #include <string>
@@ -7,7 +9,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 
-    Base64 base64_obj;
+    Base16 base64_obj;
     string input;
     getline(cin, input);
     
