@@ -4,7 +4,6 @@
 #include <cctype>
 #include <stdexcept>
 
-#include <iostream>
 
 const char *Base32::base32_alphabets[] = {
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -15,7 +14,7 @@ const char *Base32::base32_alphabets[] = {
 };
     
 
-static uint8_t charToIndex(char base32_char, Base32Type type) {
+static uint8_t char_to_index(char base32_char, Base32Type type) {
 
     if(type == Base32Type::DEFAULT) {
         if     ('2' <= base32_char && base32_char <= '7')  return base32_char - '2' + 26;
@@ -31,7 +30,7 @@ static uint8_t charToIndex(char base32_char, Base32Type type) {
         throw std::runtime_error("Invalid base32 type");
 }
 
-static char getBase32Char(const char *alphabets, const uint8_t *bytes_ptr, int chunk_index) {
+static char get_base32_char(const char *alphabets, const uint8_t *bytes_ptr, int chunk_index) {
     
     /*
         +--first octet--+-second octet--+--third octet--+--fourth octet-+--fifth octet--+
@@ -76,7 +75,7 @@ static char getBase32Char(const char *alphabets, const uint8_t *bytes_ptr, int c
     return base32_char;
 }
 
-static uint8_t getRawByte(const char *base32_ptr, int data_index, Base32Type type, int num_chars) {
+static uint8_t get_raw_byte(const char *base32_ptr, int data_index, Base32Type type, int num_chars) {
 
     /*
         +--first octet--+-second octet--+--third octet--+--fourth octet-+--fifth octet--+
@@ -89,7 +88,7 @@ static uint8_t getRawByte(const char *base32_ptr, int data_index, Base32Type typ
     uint8_t raw_byte; 
     uint8_t raw_index[9];
     for(int i = 1; i <= num_chars; ++i){
-        raw_index[i] = charToIndex(*(base32_ptr + (i - 1)), type);
+        raw_index[i] = char_to_index(*(base32_ptr + (i - 1)), type);
     }
 
     switch (data_index) {
@@ -134,8 +133,8 @@ std::string Base32::encode(const std::vector<uint8_t> &bytes) {
         const uint8_t *bytes_ptr = bytes.data() + curr;
         // split 5 bytes into 8 chunks. The size of each chunk is 5 bits.
         for(int chunk = 1; chunk <= 8; ++chunk){
-            char base32_char = getBase32Char(
-                this->base32_alphabets[static_cast<int>(this->getType())], bytes_ptr, chunk
+            char base32_char = get_base32_char(
+                this->base32_alphabets[static_cast<int>(this->get_type())], bytes_ptr, chunk
             );
             encoding.push_back(base32_char);
         }
@@ -157,8 +156,8 @@ std::string Base32::encode(const std::vector<uint8_t> &bytes) {
         int num_chunks = (8 * (num_bytes % 5) + 4) / 5; 
         
         for(int chunk = 1; chunk <= num_chunks; ++chunk){
-            encoding.push_back(getBase32Char(
-                this->base32_alphabets[static_cast<int>(this->getType())], bytes_tail, chunk
+            encoding.push_back(get_base32_char(
+                this->base32_alphabets[static_cast<int>(this->get_type())], bytes_tail, chunk
             ));
         }
         encoding += std::string(8 - num_chunks, '=');
@@ -188,8 +187,8 @@ std::vector<uint8_t> Base32::decode(const std::string &str) {
         const char *base32_ptr = encoding.c_str() + curr;
 
         for(int data_index = 1; data_index <= 5; ++data_index){
-            uint8_t byte_data = getRawByte(
-                base32_ptr, data_index, this->getType(), 8
+            uint8_t byte_data = get_raw_byte(
+                base32_ptr, data_index, this->get_type(), 8
             );
             raw_data.push_back(byte_data);
         }
@@ -217,8 +216,8 @@ std::vector<uint8_t> Base32::decode(const std::string &str) {
     
     const char *base32_ptr = encoding.c_str() + curr;
     for(int data_index = 1; data_index <= num_leftover; ++data_index){
-        uint8_t byte_data = getRawByte(
-            base32_ptr, data_index, this->getType(), (num_chars % 8)
+        uint8_t byte_data = get_raw_byte(
+            base32_ptr, data_index, this->get_type(), (num_chars % 8)
         );
         raw_data.push_back(byte_data);
     }
@@ -226,6 +225,6 @@ std::vector<uint8_t> Base32::decode(const std::string &str) {
     return raw_data;
 }
 
-Base32Type Base32::getType() {
+Base32Type Base32::get_type() {
     return this->type;
 }

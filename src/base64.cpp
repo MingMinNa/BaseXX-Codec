@@ -12,7 +12,7 @@ const char *Base64::base64_alphabet =
     "+/";
 
 
-static uint8_t charToIndex(char base64_char) {
+static uint8_t char_to_index(char base64_char) {
 
     if     ('A' <= base64_char && base64_char <= 'Z')   return base64_char - 'A';
     else if('a' <= base64_char && base64_char <= 'z')   return base64_char - 'a' + ('Z' - 'A' + 1);
@@ -22,7 +22,7 @@ static uint8_t charToIndex(char base64_char) {
     else                                                throw  std::runtime_error("Invalid base64 character");
 }
 
-static char getBase64Char(const char *alphabet, const uint8_t *bytes_ptr, int chunk_index) {
+static char get_base64_char(const char *alphabet, const uint8_t *bytes_ptr, int chunk_index) {
     
     /* Reference: https://datatracker.ietf.org/doc/html/rfc4648#section-9
         +--first octet--+-second octet--+--third octet--+
@@ -55,7 +55,7 @@ static char getBase64Char(const char *alphabet, const uint8_t *bytes_ptr, int ch
     return base64_char;
 }
 
-static uint8_t getRawByte(const char *base64_ptr, int data_index, int num_chars) {
+static uint8_t get_raw_byte(const char *base64_ptr, int data_index, int num_chars) {
 
     /* Reference: https://datatracker.ietf.org/doc/html/rfc4648#section-9
         +--first octet--+-second octet--+--third octet--+
@@ -68,7 +68,7 @@ static uint8_t getRawByte(const char *base64_ptr, int data_index, int num_chars)
     uint8_t raw_byte; 
     uint8_t raw_index[5];
     for(int i = 1; i <= num_chars; ++i){
-        raw_index[i] = charToIndex(*(base64_ptr + (i - 1)));
+        raw_index[i] = char_to_index(*(base64_ptr + (i - 1)));
     }
 
     switch (data_index) {
@@ -107,7 +107,7 @@ std::string Base64::encode(const std::vector<uint8_t> &bytes) {
         const uint8_t *bytes_ptr = bytes.data() + curr;
         // split 3 bytes into 4 chunks. The size of each chunk is 6 bits.
         for(int chunk = 1; chunk <= 4; ++chunk){
-            char base64_char = getBase64Char(
+            char base64_char = get_base64_char(
                 this->base64_alphabet, bytes_ptr, chunk
             );
             encoding.push_back(base64_char);
@@ -123,29 +123,29 @@ std::string Base64::encode(const std::vector<uint8_t> &bytes) {
         int num_chunks = (8 * (num_bytes % 3) + 5) / 6; 
 
         for(int chunk = 1; chunk <= num_chunks; ++chunk){
-            encoding.push_back(getBase64Char(
+            encoding.push_back(get_base64_char(
                 this->base64_alphabet, bytes_tail, chunk
             ));
         }
         encoding += std::string(4 - num_chunks, '=');
     }
 
-    if(this->getType() == Base64Type::URL) {
+    if(this->get_type() == Base64Type::URL) {
         // '+' -> '-' & '/' -> '_'
         std::regex pattern_plus("\\+"), pattern_slash("/");
         encoding = std::move(std::regex_replace(encoding, pattern_plus, "-"));
         encoding = std::move(std::regex_replace(encoding, pattern_slash, "_"));
     }
-    else if(this->getType() == Base64Type::PEM ||
-            this->getType() == Base64Type::MIME) {
+    else if(this->get_type() == Base64Type::PEM ||
+            this->get_type() == Base64Type::MIME) {
         
         // insert newline blanks
         // Code Reference: https://github.com/ReneNyffenegger/cpp-base64/blob/master/base64.cpp : insert_linebreaks
-        size_t pos = static_cast<int>(this->getType()); 
+        size_t pos = static_cast<int>(this->get_type()); 
 
         while (pos < encoding.size()) {
             encoding.insert(pos, "\n");
-            pos += static_cast<int>(this->getType()) + 1;
+            pos += static_cast<int>(this->get_type()) + 1;
         }
     }
 
@@ -184,7 +184,7 @@ std::vector<uint8_t> Base64::decode(const std::string &str) {
         const char *base64_ptr = encoding.c_str() + curr;
 
         for(int data_index = 1; data_index <= 3; ++data_index){
-            uint8_t byte_data = getRawByte(
+            uint8_t byte_data = get_raw_byte(
                 base64_ptr, data_index, 4
             );
             raw_data.push_back(byte_data);
@@ -205,7 +205,7 @@ std::vector<uint8_t> Base64::decode(const std::string &str) {
 
     const char *base64_ptr = encoding.c_str() + curr;
     for(int data_index = 1; data_index <= num_leftover; ++data_index){
-        uint8_t byte_data = getRawByte(
+        uint8_t byte_data = get_raw_byte(
             base64_ptr, data_index, (num_chars % 4)
         );
         raw_data.push_back(byte_data);
@@ -214,6 +214,6 @@ std::vector<uint8_t> Base64::decode(const std::string &str) {
     return raw_data;
 }
 
-Base64Type Base64::getType() {
+Base64Type Base64::get_type() {
     return this->type;
 }

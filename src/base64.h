@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdint>
 
+
 enum class Base64Type {
     DEFAULT, 
     URL,
@@ -21,7 +22,7 @@ class Base64 : public BaseCodec {
         ~Base64();
         std::string encode(const std::vector<uint8_t> &bytes);
         std::vector<uint8_t> decode(const std::string &str);
-        Base64Type getType();
+        Base64Type get_type();
 
     private:
         Base64Type type;
