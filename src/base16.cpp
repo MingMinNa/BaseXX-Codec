@@ -1,5 +1,5 @@
-#include "base_codec.h"
-#include "base16.h"
+#include "base_codec.hpp"
+#include "base16.hpp"
 #include <regex>
 #include <cctype>
 #include <stdexcept>
@@ -14,10 +14,10 @@ static uint8_t char_to_index(char base16_char) {
 
     if     ('0' <= base16_char && base16_char <= '9')  return base16_char - '0';
     else if('A' <= base16_char && base16_char <= 'F')  return base16_char - 'A' + 10;
-    else                                               throw  std::runtime_error("Invalid base16 character");
+    throw  std::runtime_error("Invalid base16 character");
 }
 
-static char get_base16_char(const char *alphabet, const uint8_t *bytes_ptr, int chunk_index) {
+static char get_base16_char(const char *alphabet, const uint8_t *bytes_ptr, size_t chunk_index) {
     
     /*
         +--first octet--+
@@ -27,7 +27,7 @@ static char get_base16_char(const char *alphabet, const uint8_t *bytes_ptr, int 
         +---1---+---2---+
     */
 
-    uint32_t index;
+    size_t index;
     switch (chunk_index) {
         case 1:  /* 1-th chunk */
             index = ((*bytes_ptr) & 0b11110000) >> 4;
@@ -55,7 +55,7 @@ static uint8_t get_raw_byte(const char *base16_ptr) {
     */
 
     uint8_t raw_byte = 0; 
-    for(int i = 0; i < 2; ++i){
+    for(size_t i = 0; i < 2; ++i){
         raw_byte = (raw_byte << 4) | char_to_index(*(base16_ptr + i));
     }
 
@@ -75,7 +75,7 @@ std::string Base16::encode(const std::vector<uint8_t> &bytes) {
 
         const uint8_t *bytes_ptr = bytes.data() + curr;
         // split 1 bytes into 2 chunks. The size of each chunk is 4 bits.
-        for(int chunk = 1; chunk <= 2; ++chunk){
+        for(size_t chunk = 1; chunk <= 2; ++chunk){
             char base16_char = get_base16_char(
                 this->base16_alphabet, bytes_ptr, chunk
             );
@@ -97,7 +97,6 @@ std::vector<uint8_t> Base16::decode(const std::string &str) {
     if(num_chars & 1)   // the size of an valid base16 encoding must be even
         throw std::runtime_error("Invalid base16 encoding");
     
-
     for(size_t curr = 0; curr < num_chars; curr += 2) {
 
         const char *base16_ptr = encoding.c_str() + curr;

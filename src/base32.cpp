@@ -1,5 +1,5 @@
-#include "base_codec.h"
-#include "base32.h"
+#include "base_codec.hpp"
+#include "base32.hpp"
 #include <regex>
 #include <cctype>
 #include <stdexcept>
@@ -19,18 +19,17 @@ static uint8_t char_to_index(char base32_char, Base32Type type) {
     if(type == Base32Type::DEFAULT) {
         if     ('2' <= base32_char && base32_char <= '7')  return base32_char - '2' + 26;
         else if('A' <= base32_char && base32_char <= 'Z')  return base32_char - 'A';
-        else                                               throw  std::runtime_error("Invalid base32 character");
+        throw  std::runtime_error("Invalid base32 character");
     }
     else if(type == Base32Type::HEX){
         if     ('0' <= base32_char && base32_char <= '9')  return base32_char - '0';
         else if('A' <= base32_char && base32_char <= 'V')  return base32_char - 'A' + 10;
-        else                                               throw  std::runtime_error("Invalid base32 character");
+        throw  std::runtime_error("Invalid base32 character");
     }
-    else 
-        throw std::runtime_error("Invalid base32 type");
+    throw std::runtime_error("Invalid base32 type");
 }
 
-static char get_base32_char(const char *alphabets, const uint8_t *bytes_ptr, int chunk_index) {
+static char get_base32_char(const char *alphabet, const uint8_t *bytes_ptr, size_t chunk_index) {
     
     /*
         +--first octet--+-second octet--+--third octet--+--fourth octet-+--fifth octet--+
@@ -40,7 +39,7 @@ static char get_base32_char(const char *alphabets, const uint8_t *bytes_ptr, int
         +-1.index-+-2.index-+-3.index-+-4.index-+-5.index-+-6.index-+-7.index-+-8.index-+
     */
 
-    uint32_t index;
+    size_t index;
     switch (chunk_index) {
         case 1:  /* 1-th chunk */
             index = ((*bytes_ptr) & 0b11111000) >> 3;
@@ -71,11 +70,11 @@ static char get_base32_char(const char *alphabets, const uint8_t *bytes_ptr, int
             break;
     }
 
-    char base32_char = alphabets[index];
+    char base32_char = alphabet[index];
     return base32_char;
 }
 
-static uint8_t get_raw_byte(const char *base32_ptr, int data_index, Base32Type type, int num_chars) {
+static uint8_t get_raw_byte(const char *base32_ptr, size_t data_index, Base32Type type, size_t num_chars) {
 
     /*
         +--first octet--+-second octet--+--third octet--+--fourth octet-+--fifth octet--+
@@ -87,7 +86,7 @@ static uint8_t get_raw_byte(const char *base32_ptr, int data_index, Base32Type t
 
     uint8_t raw_byte; 
     uint8_t raw_index[9];
-    for(int i = 1; i <= num_chars; ++i){
+    for(size_t i = 1; i <= num_chars; ++i){
         raw_index[i] = char_to_index(*(base32_ptr + (i - 1)), type);
     }
 
@@ -121,6 +120,7 @@ Base32::Base32(Base32Type type_) : type(type_) {}
 Base32::~Base32() = default;
 
 std::string Base32::encode(const std::vector<uint8_t> &bytes) {
+
     size_t num_bytes = bytes.size();
     std::string encoding;
     encoding.reserve(num_bytes / 5 * 8 + 10);
@@ -132,15 +132,16 @@ std::string Base32::encode(const std::vector<uint8_t> &bytes) {
 
         const uint8_t *bytes_ptr = bytes.data() + curr;
         // split 5 bytes into 8 chunks. The size of each chunk is 5 bits.
-        for(int chunk = 1; chunk <= 8; ++chunk){
+        for(size_t chunk = 1; chunk <= 8; ++chunk){
             char base32_char = get_base32_char(
-                this->base32_alphabets[static_cast<int>(this->get_type())], bytes_ptr, chunk
+                this->base32_alphabets[static_cast<size_t>(this->get_type())], bytes_ptr, chunk
             );
             encoding.push_back(base32_char);
         }
     }
+
     uint8_t bytes_tail[5] = {0};
-    for(uint8_t i = 0; i < num_bytes % 5; ++i){
+    for(size_t i = 0; i < num_bytes % 5; ++i){
         bytes_tail[i] = bytes[curr + i];
     }
 
@@ -153,11 +154,11 @@ std::string Base32::encode(const std::vector<uint8_t> &bytes) {
         */
 
         // Ceiling
-        int num_chunks = (8 * (num_bytes % 5) + 4) / 5; 
+        size_t num_chunks = (8 * (num_bytes % 5) + 4) / 5; 
         
-        for(int chunk = 1; chunk <= num_chunks; ++chunk){
+        for(size_t chunk = 1; chunk <= num_chunks; ++chunk){
             encoding.push_back(get_base32_char(
-                this->base32_alphabets[static_cast<int>(this->get_type())], bytes_tail, chunk
+                this->base32_alphabets[static_cast<size_t>(this->get_type())], bytes_tail, chunk
             ));
         }
         encoding += std::string(8 - num_chunks, '=');
@@ -178,7 +179,6 @@ std::vector<uint8_t> Base32::decode(const std::string &str) {
     std::vector<uint8_t> raw_data;
     raw_data.reserve(num_chars * 5 / 8 + 4);
 
-    
     size_t curr = 0;
     size_t num_chars_8_multiple = num_chars - num_chars % 8;
 
@@ -186,7 +186,7 @@ std::vector<uint8_t> Base32::decode(const std::string &str) {
 
         const char *base32_ptr = encoding.c_str() + curr;
 
-        for(int data_index = 1; data_index <= 5; ++data_index){
+        for(size_t data_index = 1; data_index <= 5; ++data_index){
             uint8_t byte_data = get_raw_byte(
                 base32_ptr, data_index, this->get_type(), 8
             );
@@ -194,7 +194,7 @@ std::vector<uint8_t> Base32::decode(const std::string &str) {
         }
     }
     
-    int num_leftover = 0;
+    size_t num_leftover = 0;
     if(num_chars % 8 == 2) {
         // 1 bytes + padding => 2 base32 characters
         num_leftover = 1;
@@ -215,7 +215,7 @@ std::vector<uint8_t> Base32::decode(const std::string &str) {
         throw std::runtime_error("Invalid base32 encoding");
     
     const char *base32_ptr = encoding.c_str() + curr;
-    for(int data_index = 1; data_index <= num_leftover; ++data_index){
+    for(size_t data_index = 1; data_index <= num_leftover; ++data_index){
         uint8_t byte_data = get_raw_byte(
             base32_ptr, data_index, this->get_type(), (num_chars % 8)
         );
