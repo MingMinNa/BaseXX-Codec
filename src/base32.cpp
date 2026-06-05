@@ -1,5 +1,5 @@
-#include "base_codec.hpp"
-#include "base32.hpp"
+#include "../include/base_codec.hpp"
+#include "../include/base32.hpp"
 #include <regex>
 #include <cctype>
 #include <stdexcept>
@@ -14,8 +14,8 @@ const char *Base32::base32_alphabets[] = {
 };
     
 
-static uint8_t char_to_index(char base32_char, Base32Type type) {
-
+static uint8_t char_to_index(char base32_char, Base32Type type) 
+{
     if(type == Base32Type::DEFAULT) {
         if     ('2' <= base32_char && base32_char <= '7')  return base32_char - '2' + 26;
         else if('A' <= base32_char && base32_char <= 'Z')  return base32_char - 'A';
@@ -29,8 +29,8 @@ static uint8_t char_to_index(char base32_char, Base32Type type) {
     throw std::runtime_error("Invalid base32 type");
 }
 
-static char get_base32_char(const char *alphabet, const uint8_t *bytes_ptr, size_t chunk_index) {
-    
+static char get_base32_char(const char *alphabet, const uint8_t *bytes_ptr, size_t chunk_index) 
+{
     /*
         +--first octet--+-second octet--+--third octet--+--fourth octet-+--fifth octet--+
         |7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|
@@ -74,8 +74,8 @@ static char get_base32_char(const char *alphabet, const uint8_t *bytes_ptr, size
     return base32_char;
 }
 
-static uint8_t get_raw_byte(const char *base32_ptr, size_t data_index, Base32Type type, size_t num_chars) {
-
+static uint8_t get_raw_byte(const char *base32_ptr, size_t data_index, Base32Type type, size_t num_chars) 
+{
     /*
         +--first octet--+-second octet--+--third octet--+--fourth octet-+--fifth octet--+
         |7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|
@@ -119,8 +119,8 @@ Base32::Base32(Base32Type type_) : type(type_) {}
 
 Base32::~Base32() = default;
 
-std::string Base32::encode(const std::vector<uint8_t> &bytes) {
-
+std::string Base32::encode(const std::vector<uint8_t> &bytes) 
+{
     size_t num_bytes = bytes.size();
     std::string encoding;
     encoding.reserve(num_bytes / 5 * 8 + 10);
@@ -167,8 +167,8 @@ std::string Base32::encode(const std::vector<uint8_t> &bytes) {
     return encoding;
 }
 
-std::vector<uint8_t> Base32::decode(const std::string &str) {
-
+std::vector<uint8_t> Base32::decode(const std::string &str) 
+{
     std::string encoding(str);
     
     // clear '='
@@ -225,6 +225,7 @@ std::vector<uint8_t> Base32::decode(const std::string &str) {
     return raw_data;
 }
 
-Base32Type Base32::get_type() {
+Base32Type Base32::get_type() 
+{
     return this->type;
 }

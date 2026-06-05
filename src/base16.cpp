@@ -1,5 +1,5 @@
-#include "base_codec.hpp"
-#include "base16.hpp"
+#include "../include/base_codec.hpp"
+#include "../include/base16.hpp"
 #include <regex>
 #include <cctype>
 #include <stdexcept>
@@ -10,15 +10,15 @@ const char *Base16::base16_alphabet =
     "ABCDEF";
 
 
-static uint8_t char_to_index(char base16_char) {
-
+static uint8_t char_to_index(char base16_char) 
+{
     if     ('0' <= base16_char && base16_char <= '9')  return base16_char - '0';
     else if('A' <= base16_char && base16_char <= 'F')  return base16_char - 'A' + 10;
     throw  std::runtime_error("Invalid base16 character");
 }
 
-static char get_base16_char(const char *alphabet, const uint8_t *bytes_ptr, size_t chunk_index) {
-    
+static char get_base16_char(const char *alphabet, const uint8_t *bytes_ptr, size_t chunk_index) 
+{    
     /*
         +--first octet--+
         |7 6 5 4 3 2 1 0|
@@ -44,8 +44,8 @@ static char get_base16_char(const char *alphabet, const uint8_t *bytes_ptr, size
     return base16_char;
 }
 
-static uint8_t get_raw_byte(const char *base16_ptr) {
-
+static uint8_t get_raw_byte(const char *base16_ptr) 
+{
     /*
         +--first octet--+
         |7 6 5 4 3 2 1 0|
@@ -65,8 +65,8 @@ static uint8_t get_raw_byte(const char *base16_ptr) {
 Base16::Base16() = default;
 Base16::~Base16() = default;
 
-std::string Base16::encode(const std::vector<uint8_t> &bytes) {
-
+std::string Base16::encode(const std::vector<uint8_t> &bytes) 
+{
     size_t num_bytes = bytes.size();
     std::string encoding;
     encoding.reserve(num_bytes * 2);
@@ -86,11 +86,11 @@ std::string Base16::encode(const std::vector<uint8_t> &bytes) {
     return encoding;
 }
 
-std::vector<uint8_t> Base16::decode(const std::string &str) {
-
+std::vector<uint8_t> Base16::decode(const std::string &str) 
+{
     std::string encoding(str);
-
     size_t num_chars = encoding.size();
+    
     std::vector<uint8_t> raw_data;
     raw_data.reserve(num_chars / 2 + 2);
 

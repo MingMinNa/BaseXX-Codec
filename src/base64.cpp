@@ -1,5 +1,5 @@
-#include "base_codec.hpp"
-#include "base64.hpp"
+#include "../include/base_codec.hpp"
+#include "../include/base64.hpp"
 #include <regex>
 #include <cctype>
 #include <stdexcept>
@@ -12,8 +12,8 @@ const char *Base64::base64_alphabet =
     "+/";
 
 
-static uint8_t char_to_index(char base64_char) {
-
+static uint8_t char_to_index(char base64_char) 
+{
     if     ('A' <= base64_char && base64_char <= 'Z')   return base64_char - 'A';
     else if('a' <= base64_char && base64_char <= 'z')   return base64_char - 'a' + ('Z' - 'A' + 1);
     else if('0' <= base64_char && base64_char <= '9')   return base64_char - '0' + ('Z' - 'A' + 1) * 2;
@@ -22,8 +22,8 @@ static uint8_t char_to_index(char base64_char) {
     throw  std::runtime_error("Invalid base64 character");
 }
 
-static char get_base64_char(const char *alphabet, const uint8_t *bytes_ptr, size_t chunk_index) {
-    
+static char get_base64_char(const char *alphabet, const uint8_t *bytes_ptr, size_t chunk_index) 
+{
     /* Reference: https://datatracker.ietf.org/doc/html/rfc4648#section-9
         +--first octet--+-second octet--+--third octet--+
         |7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|
@@ -55,8 +55,8 @@ static char get_base64_char(const char *alphabet, const uint8_t *bytes_ptr, size
     return base64_char;
 }
 
-static uint8_t get_raw_byte(const char *base64_ptr, size_t data_index, size_t num_chars) {
-
+static uint8_t get_raw_byte(const char *base64_ptr, size_t data_index, size_t num_chars) 
+{
     /* Reference: https://datatracker.ietf.org/doc/html/rfc4648#section-9
         +--first octet--+-second octet--+--third octet--+
         |7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|
@@ -94,8 +94,8 @@ Base64::Base64(Base64Type type_) : type(type_) {}
 
 Base64::~Base64() = default;
 
-std::string Base64::encode(const std::vector<uint8_t> &bytes) {
-
+std::string Base64::encode(const std::vector<uint8_t> &bytes) 
+{
     size_t num_bytes = bytes.size();
     std::string encoding;
     encoding.reserve(num_bytes / 3 * 4 + 4);
@@ -154,8 +154,8 @@ std::string Base64::encode(const std::vector<uint8_t> &bytes) {
     return encoding;
 }
 
-std::vector<uint8_t> Base64::decode(const std::string &str) {
-
+std::vector<uint8_t> Base64::decode(const std::string &str) 
+{
     std::string encoding(str);
 
     /* for type == URL*/
@@ -215,6 +215,7 @@ std::vector<uint8_t> Base64::decode(const std::string &str) {
     return raw_data;
 }
 
-Base64Type Base64::get_type() {
+Base64Type Base64::get_type() 
+{
     return this->type;
 }

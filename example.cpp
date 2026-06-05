@@ -1,6 +1,6 @@
-#include "src/base16.hpp"
-#include "src/base32.hpp"
-#include "src/base64.hpp"
+#include "include/base16.hpp"
+#include "include/base32.hpp"
+#include "include/base64.hpp"
 #include <iostream>
 #include <string>
 #include <cstdint>
