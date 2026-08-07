@@ -1,20 +1,15 @@
 # BaseXX Codec
 
-<a href="README.md">English</a> | <a href="README.zh-TW.md">繁體中文</a>
+![C++20](https://img.shields.io/badge/C%2B%2B-20-blue) [![License](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
 
-This project provides a C++ implementation of Base16, Base32, and Base64 codecs.  
-Due to the existence of BaseXX codec implementations in multiple programming languages,   
-the practical value of this project is relatively limited.  
-The main purpose is to practice and get more familiar with C++ programming.
+This project provides C++ implementations of Base16, Base32, and Base64 codecs.  
+The main purpose is to practice C++ programming and improve my understanding of the language.
 
 ## Building and Running
 ```bash
-mkdir -p build
-g++ -Wall -O2 -std=c++20 -c src/base16.cpp -o build/base16.o
-g++ -Wall -O2 -std=c++20 -c src/base32.cpp -o build/base32.o
-g++ -Wall -O2 -std=c++20 -c src/base64.cpp -o build/base64.o
-g++ -Wall -O2 -std=c++20  build/base16.o  build/base32.o  build/base64.o example.cpp -o example -lm
-./example
+cmake -S . -B build
+cmake --build build
+./build/example
 ```
 Please refer to `example.cpp` for usage examples.
 

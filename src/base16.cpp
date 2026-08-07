@@ -1,24 +1,27 @@
-#include "../include/base_codec.hpp"
-#include "../include/base16.hpp"
-#include <regex>
+#include "../include/BaseXX/base_codec.hpp"
+#include "../include/BaseXX/base16.hpp"
 #include <cctype>
+#include <string>
 #include <stdexcept>
 
+namespace BaseXX 
+{
 
 const char *Base16::base16_alphabet =
-    "0123456789"
-    "ABCDEF";
-
+    "0123456789" "ABCDEF";
 
 static uint8_t char_to_index(char base16_char) 
 {
-    if     ('0' <= base16_char && base16_char <= '9')  return base16_char - '0';
-    else if('A' <= base16_char && base16_char <= 'F')  return base16_char - 'A' + 10;
-    throw  std::runtime_error("Invalid base16 character");
+    if      ('0' <= base16_char && base16_char <= '9') return base16_char - '0';
+    else if ('A' <= base16_char && base16_char <= 'F') return base16_char - 'A' + 10;
+    return ERROR_CODE;
 }
 
-static char get_base16_char(const char *alphabet, const uint8_t *bytes_ptr, size_t chunk_index) 
-{    
+static char get_base16_char(
+    const char *alphabet, 
+    const uint8_t *bytes_ptr, 
+    size_t chunk_index
+) {    
     /*
         +--first octet--+
         |7 6 5 4 3 2 1 0|
@@ -29,14 +32,14 @@ static char get_base16_char(const char *alphabet, const uint8_t *bytes_ptr, size
 
     size_t index;
     switch (chunk_index) {
-        case 1:  /* 1-th chunk */
+        case 1:  /* 1-st chunk */
             index = ((*bytes_ptr) & 0b11110000) >> 4;
             break;
-        case 2:  /* 2-th chunk */
+        case 2:  /* 2-nd chunk */
             index = ((*bytes_ptr) & 0b00001111);
             break;
         default:
-            throw std::runtime_error("Invalid chunk index");
+            throw std::invalid_argument("Invalid chunk index");
             break;
     }
 
@@ -55,9 +58,9 @@ static uint8_t get_raw_byte(const char *base16_ptr)
     */
 
     uint8_t raw_byte = 0; 
-    for(size_t i = 0; i < 2; ++i){
-        raw_byte = (raw_byte << 4) | char_to_index(*(base16_ptr + i));
-    }
+
+    raw_byte = (char_to_index(*base16_ptr) << 4) | 
+                char_to_index(*(base16_ptr + 1));
 
     return raw_byte;
 }
@@ -71,11 +74,12 @@ std::string Base16::encode(const std::vector<uint8_t> &bytes)
     std::string encoding;
     encoding.reserve(num_bytes * 2);
     
-    for(size_t curr = 0; curr < num_bytes; ++ curr) {
+    for (size_t curr = 0; curr < num_bytes; ++ curr) {
 
         const uint8_t *bytes_ptr = bytes.data() + curr;
+        
         // split 1 bytes into 2 chunks. The size of each chunk is 4 bits.
-        for(size_t chunk = 1; chunk <= 2; ++chunk){
+        for (size_t chunk = 1; chunk <= 2; ++chunk) {
             char base16_char = get_base16_char(
                 this->base16_alphabet, bytes_ptr, chunk
             );
@@ -83,27 +87,47 @@ std::string Base16::encode(const std::vector<uint8_t> &bytes)
         }
     }
 
+    encoding.shrink_to_fit();
     return encoding;
 }
 
 std::vector<uint8_t> Base16::decode(const std::string &str) 
 {
+    if (!is_valid(str)) {
+        throw std::invalid_argument("Invalid base16 encoding");
+    }
+
     std::string encoding(str);
     size_t num_chars = encoding.size();
     
     std::vector<uint8_t> raw_data;
     raw_data.reserve(num_chars / 2 + 2);
-
-    if(num_chars & 1)   // the size of an valid base16 encoding must be even
-        throw std::runtime_error("Invalid base16 encoding");
     
-    for(size_t curr = 0; curr < num_chars; curr += 2) {
-
+    for (size_t curr = 0; curr < num_chars; curr += 2) {
         const char *base16_ptr = encoding.c_str() + curr;
         uint8_t byte_data = get_raw_byte(base16_ptr);
         raw_data.push_back(byte_data);
     }
 
+    raw_data.shrink_to_fit();
     return raw_data;
 }
 
+bool Base16::is_valid(const std::string &str)
+{
+    size_t num_chars = str.size();
+
+    // The size of an valid base16 encoding must be even.
+    if (num_chars & 1) return false;
+
+    // All characters must be in base16_alphabet.
+    for (size_t curr = 0; curr < num_chars; curr ++) {
+        if (char_to_index(str[curr]) == ERROR_CODE) {
+            return false;
+        }
+    }
+
+    return true;
+}
+   
+};
