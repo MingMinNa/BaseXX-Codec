@@ -283,6 +283,9 @@ bool Base32::is_valid(const std::string &str)
     }
 
     size_t num_chars = num_raw_chars - num_padding;
+    
+    if (num_chars == 0) return false;
+
     uint8_t last_val = char_to_index(str[num_chars - 1], this->get_type());
 
     if (last_val == ERROR_CODE) return false;

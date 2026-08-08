@@ -1,70 +1,103 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(BaseXX LANGUAGES CXX)
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release)
-endif()
-
-# Warning Flag
-add_library(warnings INTERFACE)
-
-target_compile_options(warnings
-    INTERFACE
-        -Wall
-        -Wextra
-        -Wpedantic
+project(BaseXX
+    VERSION 1.0.0
+    LANGUAGES CXX
+    HOMEPAGE_URL "https://github.com/MingMinNa/BaseXX-Codec"
+    DESCRIPTION "C++ implementations of Base16, Base32, and Base64"
 )
+
+option(BASEXX_BUILD_EXAMPLES
+    "Build examples" OFF
+)
+
+option(BASEXX_BUILD_TESTS
+    "Build tests" OFF
+)
+
+# Warning flags
+add_library(basexx_warnings INTERFACE)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(basexx_warnings
+        INTERFACE
+            -Wall
+            -Wextra
+            -Wpedantic
+    )
+elseif(MSVC)
+    target_compile_options(basexx_warnings
+        INTERFACE
+            /W4
+    )
+endif()
 
 # BaseXX Library
 file(GLOB LIB_SRCS CONFIGURE_DEPENDS
-    "${CMAKE_SOURCE_DIR}/src/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 )
 
 add_library(basexx STATIC ${LIB_SRCS})
 
+target_compile_features(basexx
+    PUBLIC
+        cxx_std_20
+)
+
 target_include_directories(basexx
     PUBLIC
-        "${CMAKE_SOURCE_DIR}/include"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
 target_link_libraries(basexx
     PRIVATE
-        warnings
+        basexx_warnings
 )
 
-# Example 
-add_executable(example example.cpp)
+# Alias
+add_library(BaseXX::basexx ALIAS basexx)
 
-target_link_libraries(example
-    PRIVATE
-        basexx
-        warnings
-)
+# Examples
+if(BASEXX_BUILD_EXAMPLES)
+
+    add_executable(example
+        example.cpp
+    )
+
+    target_link_libraries(example
+        PRIVATE
+            BaseXX::basexx
+            basexx_warnings
+    )
+
+endif()
 
 # Tests
-include(FetchContent)
+if(BASEXX_BUILD_TESTS)
 
-FetchContent_Declare(
-    Catch2
-    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-    GIT_TAG v3.15.3
-)
+    include(FetchContent)
 
-FetchContent_MakeAvailable(Catch2)
+    FetchContent_Declare(
+        Catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+        GIT_TAG v3.15.3
+    )
 
-file(GLOB TEST_SRCS CONFIGURE_DEPENDS
-    "${CMAKE_SOURCE_DIR}/tests/*.cpp"
-)
+    FetchContent_MakeAvailable(Catch2)
 
-add_executable(tests ${TEST_SRCS})
+    file(GLOB TEST_SRCS CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp"
+    )
 
-target_link_libraries(tests
-    PRIVATE
-        warnings
-        basexx
-        Catch2::Catch2WithMain
-)
+    add_executable(tests
+        ${TEST_SRCS}
+    )
+
+    target_link_libraries(tests
+        PRIVATE
+            basexx_warnings
+            BaseXX::basexx
+            Catch2::Catch2WithMain
+    )
+
+endif()

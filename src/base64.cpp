@@ -269,6 +269,9 @@ bool Base64::is_valid(const std::string &str)
     
     bool is_url = (this->get_type() == Base64Type::URL);
     size_t num_chars = num_raw_chars - num_padding;
+
+    if (num_chars == 0) return false;
+
     uint8_t last_val = char_to_index(str[num_chars - 1]);
 
     if (is_url) {
