@@ -14,6 +14,7 @@ static uint8_t char_to_index(char base16_char)
 {
     if      ('0' <= base16_char && base16_char <= '9') return base16_char - '0';
     else if ('A' <= base16_char && base16_char <= 'F') return base16_char - 'A' + 10;
+    else if ('a' <= base16_char && base16_char <= 'f') return base16_char - 'a' + 10;
     return ERROR_CODE;
 }
 
@@ -94,7 +95,7 @@ std::string Base16::encode(const std::vector<uint8_t> &bytes)
 std::vector<uint8_t> Base16::decode(const std::string &str) 
 {
     if (!is_valid(str)) {
-        throw std::invalid_argument("Invalid base16 encoding");
+        throw std::invalid_argument("Invalid base16-encoded string");
     }
 
     std::string encoding(str);

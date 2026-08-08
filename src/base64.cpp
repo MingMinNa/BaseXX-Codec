@@ -161,7 +161,7 @@ std::string Base64::encode(const std::vector<uint8_t> &bytes)
 std::vector<uint8_t> Base64::decode(const std::string &str) 
 {
     if (!is_valid(str)) {
-        throw std::invalid_argument("Invalid base64 encoding");
+        throw std::invalid_argument("Invalid base64-encoded string");
     }
 
     std::string encoding;

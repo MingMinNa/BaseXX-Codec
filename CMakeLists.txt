@@ -9,6 +9,7 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
+# Warning Flag
 add_library(warnings INTERFACE)
 
 target_compile_options(warnings
@@ -18,6 +19,7 @@ target_compile_options(warnings
         -Wpedantic
 )
 
+# BaseXX Library
 file(GLOB LIB_SRCS CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/src/*.cpp"
 )
@@ -34,10 +36,35 @@ target_link_libraries(basexx
         warnings
 )
 
+# Example 
 add_executable(example example.cpp)
 
 target_link_libraries(example
     PRIVATE
         basexx
         warnings
+)
+
+# Tests
+include(FetchContent)
+
+FetchContent_Declare(
+    Catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+    GIT_TAG v3.15.3
+)
+
+FetchContent_MakeAvailable(Catch2)
+
+file(GLOB TEST_SRCS CONFIGURE_DEPENDS
+    "${CMAKE_SOURCE_DIR}/tests/*.cpp"
+)
+
+add_executable(tests ${TEST_SRCS})
+
+target_link_libraries(tests
+    PRIVATE
+        warnings
+        basexx
+        Catch2::Catch2WithMain
 )

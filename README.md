@@ -9,10 +9,14 @@ The main purpose is to practice C++ programming and improve my understanding of 
 ```bash
 cmake -S . -B build
 cmake --build build
-./build/example
+
+./build/example  # Run the example
+./build/tests    # Run the tests
 ```
-Please refer to `example.cpp` for usage examples.
+Please refer to `example.cpp` for usage examples.  
+**Note:** The test suite uses the [Catch2](https://github.com/catchorg/Catch2) framework. See [Catch2](https://github.com/catchorg/Catch2) to learn more.
 
 ## References
 - [RFC4648](https://datatracker.ietf.org/doc/html/rfc4648)
 - [ReneNyffenegger/cpp-base64](https://github.com/ReneNyffenegger/cpp-base64/tree/master)
+- [catchorg/Catch2](https://github.com/catchorg/Catch2)

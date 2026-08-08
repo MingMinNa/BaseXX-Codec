@@ -20,10 +20,12 @@ static uint8_t char_to_index(
     if (type == Base32Type::DEFAULT) {
         if      ('2' <= base32_char && base32_char <= '7') return base32_char - '2' + 26;
         else if ('A' <= base32_char && base32_char <= 'Z') return base32_char - 'A';
+        else if ('a' <= base32_char && base32_char <= 'z') return base32_char - 'a';
     }
     else if (type == Base32Type::HEX) {
         if      ('0' <= base32_char && base32_char <= '9') return base32_char - '0';
         else if ('A' <= base32_char && base32_char <= 'V') return base32_char - 'A' + 10;
+        else if ('a' <= base32_char && base32_char <= 'v') return base32_char - 'a' + 10;
     }
     return ERROR_CODE;
 }
@@ -170,7 +172,7 @@ std::string Base32::encode(const std::vector<uint8_t> &bytes)
 std::vector<uint8_t> Base32::decode(const std::string &str) 
 {
     if (!is_valid(str)) {
-        throw std::invalid_argument("Invalid base32 encoding");
+        throw std::invalid_argument("Invalid base32-encoded string");
     }
 
     std::string encoding(str);
