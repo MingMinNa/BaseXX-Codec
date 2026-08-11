@@ -16,7 +16,7 @@ $ ./build/tests    # Run the tests
 Please refer to `example.cpp` for usage examples.  
 **Note:** The test suite uses the [Catch2](https://github.com/catchorg/Catch2) framework. See [Catch2](https://github.com/catchorg/Catch2) to learn more.
 
-## How to Use
+## Installation
 To use this library in your own CMake project, you can add it with CMake's `FetchContent` module.  
 Add the following to your `CMakeLists.txt`:
 ```cmake
