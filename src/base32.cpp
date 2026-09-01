@@ -119,7 +119,7 @@ static uint8_t get_raw_byte(
 Base32::Base32(Base32Type type_) : type(type_) {}
 Base32::~Base32() = default;
 
-std::string Base32::encode(const std::vector<uint8_t> &bytes) 
+std::string Base32::encode(std::span<const uint8_t> bytes) 
 {
     size_t num_bytes = bytes.size();
     std::string encoding;
@@ -127,6 +127,7 @@ std::string Base32::encode(const std::vector<uint8_t> &bytes)
     
     size_t curr = 0;
     size_t num_bytes_5_multiple = num_bytes - num_bytes % 5;
+    const char *alphabet = base32_alphabets[static_cast<size_t>(get_type())];
 
     for (; curr < num_bytes_5_multiple; curr += 5) {
 
@@ -134,9 +135,7 @@ std::string Base32::encode(const std::vector<uint8_t> &bytes)
         
         // split 5 bytes into 8 chunks. The size of each chunk is 5 bits.
         for (size_t chunk = 1; chunk <= 8; ++chunk) {
-            char base32_char = get_base32_char(
-                this->base32_alphabets[static_cast<size_t>(this->get_type())], bytes_ptr, chunk
-            );
+            char base32_char = get_base32_char(alphabet, bytes_ptr, chunk);
             encoding.push_back(base32_char);
         }
     }
@@ -158,9 +157,8 @@ std::string Base32::encode(const std::vector<uint8_t> &bytes)
         size_t num_chunks = (8 * (num_bytes % 5) + 4) / 5; 
         
         for (size_t chunk = 1; chunk <= num_chunks; ++chunk) {
-            encoding.push_back(get_base32_char(
-                this->base32_alphabets[static_cast<size_t>(this->get_type())], bytes_tail, chunk
-            ));
+            char base32_char = get_base32_char(alphabet, bytes_tail, chunk);
+            encoding.push_back(base32_char);
         }
         encoding += std::string(8 - num_chunks, '=');
     }
@@ -169,10 +167,12 @@ std::string Base32::encode(const std::vector<uint8_t> &bytes)
     return encoding;
 }
 
-std::vector<uint8_t> Base32::decode(const std::string &str) 
+std::vector<uint8_t> Base32::decode(std::string_view str) 
 {
     if (!is_valid(str)) {
-        throw std::invalid_argument("Invalid base32-encoded string");
+        throw std::invalid_argument(
+            "Invalid base32-encoded string"
+        );
     }
 
     std::string encoding(str);
@@ -199,10 +199,7 @@ std::vector<uint8_t> Base32::decode(const std::string &str)
         }
 
         for (size_t data_index = 1; data_index <= 5; ++data_index) {
-            uint8_t byte_data = get_raw_byte(
-                raw_index, 
-                data_index
-            );
+            uint8_t byte_data = get_raw_byte(raw_index, data_index);
             raw_data.push_back(byte_data);
         }
     }
@@ -241,10 +238,7 @@ std::vector<uint8_t> Base32::decode(const std::string &str)
     }
 
     for (size_t data_index = 1; data_index <= num_leftover; ++data_index) {
-        uint8_t byte_data = get_raw_byte(
-            raw_index, 
-            data_index
-        );
+        uint8_t byte_data = get_raw_byte(raw_index, data_index);
         raw_data.push_back(byte_data);
     }
 
@@ -252,7 +246,7 @@ std::vector<uint8_t> Base32::decode(const std::string &str)
     return raw_data;
 }
 
-bool Base32::is_valid(const std::string &str)
+bool Base32::is_valid(std::string_view str)
 {
     size_t num_raw_chars = str.size();
 
@@ -286,7 +280,7 @@ bool Base32::is_valid(const std::string &str)
     
     if (num_chars == 0) return false;
 
-    uint8_t last_val = char_to_index(str[num_chars - 1], this->get_type());
+    uint8_t last_val = char_to_index(str[num_chars - 1], get_type());
 
     if (last_val == ERROR_CODE) return false;
 
@@ -296,7 +290,7 @@ bool Base32::is_valid(const std::string &str)
     else if (num_padding == 6 && last_val & 0b00000011) return false;
 
     for (size_t curr = 0; curr < num_chars; ++curr) {
-        if (char_to_index(str[curr], this->get_type()) == ERROR_CODE) {
+        if (char_to_index(str[curr], get_type()) == ERROR_CODE) {
             return false;
         }
     }

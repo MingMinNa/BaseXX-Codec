@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(BaseXX
-    VERSION 1.0.0
+    VERSION 1.1.0
     LANGUAGES CXX
     HOMEPAGE_URL "https://github.com/MingMinNa/BaseXX-Codec"
     DESCRIPTION "C++ implementations of Base16, Base32, and Base64"

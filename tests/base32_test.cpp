@@ -115,16 +115,16 @@ TEST_CASE( "Base32-Default: long text", "[base32]" )
 
 TEST_CASE( "Base32-Default: invalid length string throws or fails", "[base32]" ) 
 {
-    REQUIRE_THROWS  ( default_codec32.decode("A") );                // length 1
-    REQUIRE_THROWS  ( default_codec32.decode("AB") );               // length 2
-    REQUIRE_THROWS  ( default_codec32.decode("ABC") );              // length 3
-    REQUIRE_THROWS  ( default_codec32.decode("ABCD") );             // length 4
-    REQUIRE_THROWS  ( default_codec32.decode("ABCDE") );            // length 5
-    REQUIRE_THROWS  ( default_codec32.decode("ABCDEF") );           // length 6
-    REQUIRE_THROWS  ( default_codec32.decode("ABCDEFG") );          // length 7
-    REQUIRE_NOTHROW ( default_codec32.decode("ABCDEFGH") );         // length 8  (OK)
-    REQUIRE_THROWS  ( default_codec32.decode("ABCDEFGHI") );        // length 9
-    REQUIRE_NOTHROW ( default_codec32.decode("ABCDEFGHIJKLMNOP") ); // length 16 (OK)
+    REQUIRE_THROWS ( default_codec32.decode("A") );                // length 1
+    REQUIRE_THROWS ( default_codec32.decode("AB") );               // length 2
+    REQUIRE_THROWS ( default_codec32.decode("ABC") );              // length 3
+    REQUIRE_THROWS ( default_codec32.decode("ABCD") );             // length 4
+    REQUIRE_THROWS ( default_codec32.decode("ABCDE") );            // length 5
+    REQUIRE_THROWS ( default_codec32.decode("ABCDEF") );           // length 6
+    REQUIRE_THROWS ( default_codec32.decode("ABCDEFG") );          // length 7
+    REQUIRE_NOTHROW( default_codec32.decode("ABCDEFGH") );         // length 8  (OK)
+    REQUIRE_THROWS ( default_codec32.decode("ABCDEFGHI") );        // length 9
+    REQUIRE_NOTHROW( default_codec32.decode("ABCDEFGHIJKLMNOP") ); // length 16 (OK)
 }
 
 TEST_CASE( "Base32-Default: padded strings of valid length decode correctly", "[base32]" ) 
@@ -140,7 +140,8 @@ TEST_CASE( "Base32-Default: incorrect padding throws", "[base32]" )
 {
     REQUIRE_THROWS( default_codec32.decode("AB=====") );    
     REQUIRE_THROWS( default_codec32.decode("A=======") );
-    REQUIRE_THROWS( default_codec32.decode("ABCD=E==") );
+    REQUIRE_THROWS( default_codec32.decode("ABCDFE==") );
+    REQUIRE_THROWS( default_codec32.decode("ABCD=EF=") );
     REQUIRE_THROWS( default_codec32.decode("========") );
 }
 
@@ -271,7 +272,7 @@ TEST_CASE( "Base32: valid base32 string", "[base32][is_valid]" )
 {
     REQUIRE( default_codec32.is_valid("MFRGGZDF") == true );
     REQUIRE( default_codec32.is_valid("abcdefgh") == true ); // lowercase is ok for decoder.
-    REQUIRE( default_codec32.is_valid("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567") == true );
+    REQUIRE( default_codec32.is_valid("ABcdEFGhIjKLMNOPQRSTUVWxyZ234567") == true );
 }
 
 TEST_CASE( "Base32: invalid length string is invalid", "[base32][is_valid]" ) 

@@ -116,16 +116,16 @@ TEST_CASE( "Base64-Default: long text", "[base64]" )
 
 TEST_CASE( "Base64-Default: invalid length string throws or fails", "[base64]" ) 
 {
-    REQUIRE_THROWS  ( default_codec64.decode("A") );                  // length 1
-    REQUIRE_THROWS  ( default_codec64.decode("AB") );                 // length 2
-    REQUIRE_THROWS  ( default_codec64.decode("ABC") );                // length 3
-    REQUIRE_NOTHROW ( default_codec64.decode("ABCD") );               // length 4  (OK, 3 bytes)
-    REQUIRE_THROWS  ( default_codec64.decode("ABCDE") );              // length 5
-    REQUIRE_THROWS  ( default_codec64.decode("ABCDEF") );             // length 6
-    REQUIRE_THROWS  ( default_codec64.decode("ABCDEFG") );            // length 7
-    REQUIRE_NOTHROW ( default_codec64.decode("ABCDEFGH") );           // length 8  (OK, 6 bytes)
-    REQUIRE_THROWS  ( default_codec64.decode("ABCDEFGHI") );          // length 9
-    REQUIRE_NOTHROW ( default_codec64.decode("ABCDEFGHIJKLMNOP") );   // length 16 (OK, 12 bytes)
+    REQUIRE_THROWS ( default_codec64.decode("A") );                  // length 1
+    REQUIRE_THROWS ( default_codec64.decode("AB") );                 // length 2
+    REQUIRE_THROWS ( default_codec64.decode("ABC") );                // length 3
+    REQUIRE_NOTHROW( default_codec64.decode("ABCD") );               // length 4  (OK, 3 bytes)
+    REQUIRE_THROWS ( default_codec64.decode("ABCDE") );              // length 5
+    REQUIRE_THROWS ( default_codec64.decode("ABCDEF") );             // length 6
+    REQUIRE_THROWS ( default_codec64.decode("ABCDEFG") );            // length 7
+    REQUIRE_NOTHROW( default_codec64.decode("ABCDEFGH") );           // length 8  (OK, 6 bytes)
+    REQUIRE_THROWS ( default_codec64.decode("ABCDEFGHI") );          // length 9
+    REQUIRE_NOTHROW( default_codec64.decode("ABCDEFGHIJKLMNOP") );   // length 16 (OK, 12 bytes)
 }
 
 TEST_CASE( "Base64-Default: padded strings of valid length decode correctly", "[base64]" ) 
@@ -197,8 +197,12 @@ TEST_CASE( "Base64: distinguish Base64-Default and Base64-URL", "[base64][is_val
 {
     REQUIRE( default_codec64.is_valid("ABCDA+/B+13/Cw==") == true );
     REQUIRE( default_codec64.is_valid("ABCDA-_B-13_Cw==") == false );
+    REQUIRE( default_codec64.is_valid("AAD/") == true );
+    REQUIRE( default_codec64.is_valid("AFL+") == true );
     REQUIRE( url_codec64.is_valid("ABCDA+/B+13/Cw==") == false );
     REQUIRE( url_codec64.is_valid("ABCDA-_B-13_Cw==") == true );
+    REQUIRE( url_codec64.is_valid("AAD_") == true );
+    REQUIRE( url_codec64.is_valid("AFL-") == true );
 }
 
 TEST_CASE( "Base64: empty string is valid", "[base64][is_valid]" ) 

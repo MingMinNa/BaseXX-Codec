@@ -94,7 +94,7 @@ static uint8_t get_raw_byte(
 Base64::Base64(Base64Type type_) : type(type_) {}
 Base64::~Base64() = default;
 
-std::string Base64::encode(const std::vector<uint8_t> &bytes) 
+std::string Base64::encode(std::span<const uint8_t> bytes) 
 {
     size_t num_bytes = bytes.size();
     std::string encoding;
@@ -109,9 +109,7 @@ std::string Base64::encode(const std::vector<uint8_t> &bytes)
 
         // split 3 bytes into 4 chunks. The size of each chunk is 6 bits.
         for (size_t chunk = 1; chunk <= 4; ++chunk) {
-            char base64_char = get_base64_char(
-                this->base64_alphabet, bytes_ptr, chunk
-            );
+            char base64_char = get_base64_char(base64_alphabet, bytes_ptr, chunk);
             encoding.push_back(base64_char);
         }
     }
@@ -126,14 +124,13 @@ std::string Base64::encode(const std::vector<uint8_t> &bytes)
         size_t num_chunks = (8 * (num_bytes % 3) + 5) / 6; 
 
         for (size_t chunk = 1; chunk <= num_chunks; ++chunk) {
-            encoding.push_back(get_base64_char(
-                this->base64_alphabet, bytes_tail, chunk
-            ));
+            char base64_char = get_base64_char(base64_alphabet, bytes_tail, chunk);
+            encoding.push_back(base64_char);
         }
         encoding += std::string(4 - num_chunks, '=');
     }
 
-    if (this->get_type() == Base64Type::URL) {
+    if (get_type() == Base64Type::URL) {
         // '+' -> '-' & '/' -> '_'
         for (char &c : encoding) {
             if      (c == '+') c = '-';
@@ -141,16 +138,16 @@ std::string Base64::encode(const std::vector<uint8_t> &bytes)
         }
     }
     else if (
-        this->get_type() == Base64Type::PEM ||
-        this->get_type() == Base64Type::MIME
+        get_type() == Base64Type::PEM ||
+        get_type() == Base64Type::MIME
     ) {
         // insert newline blanks
         // Code Reference: https://github.com/ReneNyffenegger/cpp-base64/blob/master/base64.cpp : insert_linebreaks
-        size_t pos = static_cast<size_t>(this->get_type()); 
+        size_t pos = static_cast<size_t>(get_type()); 
 
         while (pos < encoding.size()) {
             encoding.insert(pos, "\n");
-            pos += static_cast<size_t>(this->get_type()) + 1;
+            pos += static_cast<size_t>(get_type()) + 1;
         }
     }
 
@@ -158,10 +155,12 @@ std::string Base64::encode(const std::vector<uint8_t> &bytes)
     return encoding;
 }
 
-std::vector<uint8_t> Base64::decode(const std::string &str) 
+std::vector<uint8_t> Base64::decode(std::string_view str) 
 {
     if (!is_valid(str)) {
-        throw std::invalid_argument("Invalid base64-encoded string");
+        throw std::invalid_argument(
+            "Invalid base64-encoded string"
+        );
     }
 
     std::string encoding;
@@ -193,10 +192,7 @@ std::vector<uint8_t> Base64::decode(const std::string &str)
         }
 
         for (size_t data_index = 1; data_index <= 3; ++data_index) {
-            uint8_t byte_data = get_raw_byte(
-                raw_index, 
-                data_index
-            );
+            uint8_t byte_data = get_raw_byte(raw_index, data_index);
             raw_data.push_back(byte_data);
         }
     }
@@ -227,10 +223,7 @@ std::vector<uint8_t> Base64::decode(const std::string &str)
     }
 
     for (size_t data_index = 1; data_index <= num_leftover; ++data_index) {
-        uint8_t byte_data = get_raw_byte(
-            raw_index,
-            data_index
-        );
+        uint8_t byte_data = get_raw_byte(raw_index, data_index);
         raw_data.push_back(byte_data);
     }
 
@@ -238,14 +231,14 @@ std::vector<uint8_t> Base64::decode(const std::string &str)
     return raw_data;
 }
 
-bool Base64::is_valid(const std::string &str)
+bool Base64::is_valid(std::string_view str)
 {
     // For PEM/MIME, newlines are inserted by encode() and are not data.
     std::string encoding(str);
 
     if (
-        this->get_type() == Base64Type::PEM || 
-        this->get_type() == Base64Type::MIME
+        get_type() == Base64Type::PEM || 
+        get_type() == Base64Type::MIME
     ) {
         encoding.erase(
             std::remove(encoding.begin(), encoding.end(), '\n'),
@@ -267,7 +260,7 @@ bool Base64::is_valid(const std::string &str)
         ++ num_padding;
     }
     
-    bool is_url = (this->get_type() == Base64Type::URL);
+    bool is_url = (get_type() == Base64Type::URL);
     size_t num_chars = num_raw_chars - num_padding;
 
     if (num_chars == 0) return false;
@@ -276,7 +269,7 @@ bool Base64::is_valid(const std::string &str)
 
     if (is_url) {
         if      (str[num_chars - 1] == '-') last_val = char_to_index('+');
-        else if (str[num_chars - 1] == '/') last_val = char_to_index('_');
+        else if (str[num_chars - 1] == '_') last_val = char_to_index('/');
     } 
 
     if (last_val == ERROR_CODE) return false;

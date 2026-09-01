@@ -69,7 +69,7 @@ static uint8_t get_raw_byte(const char *base16_ptr)
 Base16::Base16() = default;
 Base16::~Base16() = default;
 
-std::string Base16::encode(const std::vector<uint8_t> &bytes) 
+std::string Base16::encode(std::span<const uint8_t> bytes) 
 {
     size_t num_bytes = bytes.size();
     std::string encoding;
@@ -81,9 +81,7 @@ std::string Base16::encode(const std::vector<uint8_t> &bytes)
         
         // split 1 bytes into 2 chunks. The size of each chunk is 4 bits.
         for (size_t chunk = 1; chunk <= 2; ++chunk) {
-            char base16_char = get_base16_char(
-                this->base16_alphabet, bytes_ptr, chunk
-            );
+            char base16_char = get_base16_char(base16_alphabet, bytes_ptr, chunk);
             encoding.push_back(base16_char);
         }
     }
@@ -92,20 +90,20 @@ std::string Base16::encode(const std::vector<uint8_t> &bytes)
     return encoding;
 }
 
-std::vector<uint8_t> Base16::decode(const std::string &str) 
+std::vector<uint8_t> Base16::decode(std::string_view str) 
 {
     if (!is_valid(str)) {
-        throw std::invalid_argument("Invalid base16-encoded string");
+        throw std::invalid_argument(
+            "Invalid base16-encoded string"
+        );
     }
 
-    std::string encoding(str);
-    size_t num_chars = encoding.size();
-    
+    size_t num_chars = str.size();    
     std::vector<uint8_t> raw_data;
     raw_data.reserve(num_chars / 2 + 2);
     
     for (size_t curr = 0; curr < num_chars; curr += 2) {
-        const char *base16_ptr = encoding.c_str() + curr;
+        const char *base16_ptr = str.data() + curr;
         uint8_t byte_data = get_raw_byte(base16_ptr);
         raw_data.push_back(byte_data);
     }
@@ -114,7 +112,7 @@ std::vector<uint8_t> Base16::decode(const std::string &str)
     return raw_data;
 }
 
-bool Base16::is_valid(const std::string &str)
+bool Base16::is_valid(std::string_view str)
 {
     size_t num_chars = str.size();
 

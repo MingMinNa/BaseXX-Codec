@@ -161,7 +161,7 @@ TEST_CASE( "Base16: odd length string is invalid", "[base16][is_valid]" )
 
 TEST_CASE( "Base16: string with non-hex characters is invalid", "[base16][is_valid]" ) 
 {
-    REQUIRE( codec16.is_valid("GG") == false );       // 'G' is not in alphabet.
-    REQUIRE( codec16.is_valid("12-34") == false );    // '-' is not in alphabet.
-    REQUIRE( codec16.is_valid("12 34") == false );    // ' ' is not in alphabet.
+    REQUIRE( codec16.is_valid("GG") == false );        // 'G' is not in alphabet.
+    REQUIRE( codec16.is_valid("-12-34") == false );    // '-' is not in alphabet.
+    REQUIRE( codec16.is_valid(" 12 34") == false );    // ' ' is not in alphabet.
 }
